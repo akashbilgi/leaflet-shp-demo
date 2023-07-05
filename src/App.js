@@ -16,18 +16,22 @@ function App() {
     setMap(mymap);
 
     // Load shapefile
-    shapefile.read('http://localhost:8003/test_react/data/LACity')
+    shapefile
+      .read('http://localhost:8003/test_react/data/LACity')
       .then(function ({ features }) {
         const geoLayer = L.geoJSON(features, {
           style: function (feature) {
+            const value = feature.properties.POP; // Change property name to use the desired data
+            const color = getColor(value);
             return {
-              fillColor: getRandomColor(),
+              fillColor: color,
               color: '#000',
               fillOpacity: 0.5
             };
           },
           onEachFeature: function (feature, layer) {
-            layer.bindPopup(JSON.stringify(feature.properties));
+            const tooltipContent = `Tract: ${feature.properties.TRACTCE10}\nTotal Population: ${feature.properties.POP}`;
+            layer.bindTooltip(tooltipContent).openTooltip();
           }
         }).addTo(mymap);
       })
@@ -72,8 +76,7 @@ function App() {
 
   function getColor(value) {
     // Define color scale based on data range
-    // Example: return value > 100 ? '#800026' : value > 50 ? '#BD0026' : value > 20 ? '#E31A1C' : value > 10 ? '#FC4E2A' : value > 5 ? '#FD8D3C' : value > 2 ? '#FEB24C' : value > 0 ? '#FED976' : '#fff';
-    return '#800026';
+    return value > 1000 ? '#800026' : value > 500 ? '#BD0026' : value > 200 ? '#E31A1C' : '#FED976';
   }
 
   function getRandomColor() {
