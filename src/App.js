@@ -4,14 +4,14 @@ import L from 'leaflet';
 import * as shapefile from 'shapefile';
 
 function App() {
-  const [data, setData] = useState(null);
+  const [geoLayer, setGeoLayer] = useState(null);
   const [map, setMap] = useState(null);
 
   useEffect(() => {
     // Initialize map
     const mymap = L.map('mapid').setView([34.0522, -118.2437], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
+      maxZoom: 19,
     }).addTo(mymap);
     setMap(mymap);
 
@@ -19,64 +19,85 @@ function App() {
     shapefile
       .read('http://localhost:8003/test_react/data/LACity')
       .then(function ({ features }) {
-        const geoLayer = L.geoJSON(features, {
+        const newGeoLayer = L.geoJSON(features, {
           style: function (feature) {
-            const value = feature.properties.POP; // Change property name to use the desired data
+            const value = feature.properties.POP;
             const color = getColor(value);
             return {
               fillColor: color,
               color: '#000',
-              fillOpacity: 0.5
+              fillOpacity: 0.5,
             };
           },
           onEachFeature: function (feature, layer) {
+            layer.on('click', function (e) {
+              if (geoLayer) {
+                geoLayer.setStyle({ fillOpacity: 0.5 }); // Reset opacity for all features
+                layer.setStyle({ fillOpacity: 1 }); // Highlight the clicked feature
+              }
+            });
+
             const tooltipContent = `Tract: ${feature.properties.TRACTCE10}\nTotal Population: ${feature.properties.POP}`;
             layer.bindTooltip(tooltipContent).openTooltip();
-          }
+          },
         }).addTo(mymap);
+
+        setGeoLayer(newGeoLayer); // Save a reference to the GeoJSON layer
       })
       .catch(function (error) {
         console.log('Error loading shapefile:', error);
       });
   }, []);
 
-  useEffect(() => {
-    if (data && map) {
-      // Update map style based on data
-      const geoLayer = map.getPane('overlayPane').querySelector('.leaflet-geojson');
-      if (geoLayer) {
-        geoLayer.eachLayer(function (layer) {
-          const label = layer.feature.properties.NAME;
-          const value = data[label];
-          const color = getColor(value);
-          layer.setStyle({ fillColor: color });
-          layer.bindTooltip(`${label}: ${value}`).openTooltip();
-        });
-      }
+  function fetchData() {
+    axios
+      .get('http://localhost:8003/test_react/data/example.json')
+      .then((response) => {
+        const labels = response.data.labels;
 
-      // Update legend
-      const legend = L.control({ position: 'bottomright' });
-      legend.onAdd = function (map) {
-        const div = L.DomUtil.create('div', 'info legend');
-        const grades = Object.keys(data);
-        div.innerHTML += '<h4>Data</h4>';
-        for (let i = 0; i < grades.length; i++) {
-          div.innerHTML +=
-            '<i style="background:' +
-            getColor(grades[i]) +
-            '"></i> ' +
-            grades[i] +
-            '<br>';
+        // Create a mapping from labels to colors
+        const labelColorMap = {};
+        labels.forEach((label) => {
+          if (!labelColorMap[label]) {
+            labelColorMap[label] = getRandomColor();
+          }
+        });
+
+        if (geoLayer) {
+          let labelIndex = 0;
+          geoLayer.eachLayer(function (layer) {
+            const label = labels[labelIndex];
+            const color = labelColorMap[label];
+            layer.setStyle({ fillColor: color });
+            layer.bindTooltip(`${label}`).openTooltip();
+            labelIndex += 1;
+          });
         }
-        return div;
-      };
-      legend.addTo(map);
-    }
-  }, [data, map]);
+
+        // Update legend
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function (map) {
+          const div = L.DomUtil.create('div', 'info legend');
+          div.innerHTML += '<h4>Data</h4>';
+          for (let label in labelColorMap) {
+            div.innerHTML +=
+              '<i style="background:' +
+              labelColorMap[label] +
+              '"></i> ' +
+              label +
+              '<br>';
+          }
+          return div;
+        };
+        legend.addTo(map);
+      })
+      .catch((error) => {
+        console.log('Error fetching data:', error);
+      });
+  }
 
   function getColor(value) {
-    // Define color scale based on data range
-    return value > 1000 ? '#800026' : value > 500 ? '#BD0026' : value > 200 ? '#E31A1C' : '#FED976';
+    return value > 4000 ? '#800026' : value > 1000 ? '#000' : value > 900 ? '#E31A1C' : '#FED976';
   }
 
   function getRandomColor() {
@@ -86,28 +107,6 @@ function App() {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
-  }
-
-  function fetchData() {
-    axios
-      .get('http://localhost:8000')
-      .then((response) => {
-        setData(response.data);
-      })
-      .catch((error) => {
-        console.log('Error fetching data:', error);
-        const numberOfFeatures = 2000; // Specify the number of features to generate
-
-        // Generate random data
-        const randomData = {};
-        for (let i = 0; i < numberOfFeatures; i++) {
-          const label = `Feature ${i + 1}`;
-          const value = Math.floor(Math.random() * 100); // Generate a random value between 0 and 100
-          randomData[label] = value;
-        }
-
-        setData(randomData);
-      });
   }
 
   return (
