@@ -8,6 +8,24 @@ function App() {
   const [map, setMap] = useState(null);
   const [selectedFile, setSelectedFile] = useState('LACity');
   const [files, setFiles] = useState([]);
+  const [apiParams, setApiParams] = useState({
+    file_name: `${selectedFile}.shp`,
+    disname: 'households',
+    minName: 'pop_16up',
+    minLow: 0,
+    minHigh: 3000,
+    maxName: '',
+    maxLow: 0,
+    maxHigh: 99999,
+    avgName: 'employed',
+    avgLow: 1000,
+    avgHigh: 4000,
+    sumName: 'pop2010',
+    sumLow: 20000,
+    sumHigh: 99999,
+    countLow: -99999,
+    countHigh: 99999,
+  });
 
   useEffect(() => {
     axios
@@ -70,24 +88,7 @@ function App() {
   function fetchData() {
     axios
       .get('http://localhost:8000/api/endpoint', {
-        params: {
-          file_name: `${selectedFile}.shp`,
-          disname: 'households',
-          minName: 'pop_16up',
-          minLow: 0,
-          minHigh: 3000,
-          maxName: '',
-          maxLow: 0,
-          maxHigh: 99999,
-          avgName: 'employed',
-          avgLow: 1000,
-          avgHigh: 4000,
-          sumName: 'pop2010',
-          sumLow: 20000,
-          sumHigh: 99999,
-          countLow: -99999,
-          countHigh: 99999,
-        },
+        params: apiParams,
       })
       .then((response) => {
         const labels = response.data.labels;
@@ -138,6 +139,14 @@ function App() {
     setSelectedFile(event.target.value);
   };
 
+  const handleApiParamChange = (event) => {
+    const { name, value } = event.target;
+    setApiParams((prevParams) => ({
+      ...prevParams,
+      [name]: value,
+    }));
+  };
+
   const getColor = (value) => {
     return '#000';
   };
@@ -155,14 +164,147 @@ function App() {
     <div className="App">
       <div style={{ display: 'flex' }}>
         <div style={{ width: '15%' }}>
-          <select value={selectedFile} onChange={handleChange}>
-            {files.map((file, index) => (
-              <option value={file} key={index}>
-                {file}
-              </option>
-            ))}
-          </select>
-          <button onClick={fetchData}>Fetch Data</button>
+          <div style={{ marginBottom: '10px' }}>
+            <label htmlFor="selectedFile">Select File:</label>
+            <select
+              id="selectedFile"
+              value={selectedFile}
+              onChange={handleChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            >
+              {files.map((file, index) => (
+                <option value={file} key={index}>
+                  {file}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={{ marginBottom: '10px' }}>
+            <button onClick={fetchData} style={{ fontSize: '14px', padding: '5px 10px' }}>
+              Fetch Data
+            </button>
+          </div>
+          <div>
+            <label htmlFor="minName">minName:</label>
+            <input
+              type="text"
+              id="minName"
+              name="minName"
+              value={apiParams.minName}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="minLow">minLow:</label>
+            <input
+              type="number"
+              id="minLow"
+              name="minLow"
+              value={apiParams.minLow}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="minHigh">minHigh:</label>
+            <input
+              type="number"
+              id="minHigh"
+              name="minHigh"
+              value={apiParams.minHigh}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="avgName">avgName:</label>
+            <input
+              type="text"
+              id="avgName"
+              name="avgName"
+              value={apiParams.avgName}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="avgLow">avgLow:</label>
+            <input
+              type="number"
+              id="avgLow"
+              name="avgLow"
+              value={apiParams.avgLow}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="avgHigh">avgHigh:</label>
+            <input
+              type="number"
+              id="avgHigh"
+              name="avgHigh"
+              value={apiParams.avgHigh}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="sumName">sumName:</label>
+            <input
+              type="text"
+              id="sumName"
+              name="sumName"
+              value={apiParams.sumName}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="sumLow">sumLow:</label>
+            <input
+              type="number"
+              id="sumLow"
+              name="sumLow"
+              value={apiParams.sumLow}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="sumHigh">sumHigh:</label>
+            <input
+              type="number"
+              id="sumHigh"
+              name="sumHigh"
+              value={apiParams.sumHigh}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="countLow">countLow:</label>
+            <input
+              type="number"
+              id="countLow"
+              name="countLow"
+              value={apiParams.countLow}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
+          <div>
+            <label htmlFor="countHigh">countHigh:</label>
+            <input
+              type="number"
+              id="countHigh"
+              name="countHigh"
+              value={apiParams.countHigh}
+              onChange={handleApiParamChange}
+              style={{ fontSize: '14px', padding: '5px' }}
+            />
+          </div>
         </div>
         <div style={{ width: '85%' }}>
           <div id="mapid" style={{ height: '600px' }}></div>
