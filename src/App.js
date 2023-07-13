@@ -51,7 +51,26 @@ function App() {
 
   function fetchData() {
     axios
-      .get('http://localhost:8003/test_react/data/example.json')
+      .get('http://localhost:8000/api/endpoint', {
+        params: {
+          file_name: "LACity.shp",
+          disname: 'households',
+          minName: 'pop_16up',
+          minLow: 0,
+          minHigh: 3000,
+          maxName: '',
+          maxLow: 0,
+          maxHigh: 99999,
+          avgName: 'employed',
+          avgLow: 1000,
+          avgHigh: 4000,
+          sumName: 'pop2010',
+          sumLow: 20000,
+          sumHigh: 99999,
+          countLow: -99999,
+          countHigh: 99999,
+        },
+      })
       .then((response) => {
         const labels = response.data.labels;
 
@@ -97,7 +116,10 @@ function App() {
   }
 
   function getColor(value) {
-    return value > 4000 ? '#800026' : value > 1000 ? '#000' : value > 900 ? '#E31A1C' : '#FED976';
+    // Update this function based on your specific logic
+    // to map region labels or other values to colors
+    // Example: return value === 'A' ? '#800026' : value === 'B' ? '#000' : '#FED976';
+    return '#FED976';
   }
 
   function getRandomColor() {
