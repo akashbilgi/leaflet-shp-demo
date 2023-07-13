@@ -163,9 +163,9 @@ function App() {
 
   return (
     <div className="App">
-      <header>
+      <header style={{ display: 'flex', alignItems: 'center' }}>
         <img src={logo} alt="Logo" style={{ width: '200px', height: '200px', marginRight: '20px' }} />
-        <h1>Pyneapple App Demo</h1>
+        <h1 style={{ fontSize: '24px' }}>Pyneapple App Demo</h1>
       </header>
       <div style={{ display: 'flex' }}>
         <div style={{ width: '15%', fontSize: '14px' }}>
@@ -311,8 +311,8 @@ function App() {
             />
           </div>
         </div>
-        <div style={{ width: '85%' }}>
-          <div id="mapid" style={{ height: '600px' }}></div>
+        <div style={{ width: '85%', height: '600px', flexGrow: 1 }}>
+          <div id="mapid" style={{ height: '100%', width: '100%' }}></div>
         </div>
       </div>
     </div>
