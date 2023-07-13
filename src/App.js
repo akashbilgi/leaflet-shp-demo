@@ -88,9 +88,10 @@ function App() {
             const label = labels[labelIndex];
             const color = labelColorMap[label];
             layer.setStyle({ fillColor: color });
-            layer.bindTooltip(`${label}`).openTooltip();
+            layer.bindTooltip(`${label}`);
             labelIndex += 1;
           });
+          
         }
 
         // Update legend
@@ -119,7 +120,7 @@ function App() {
     // Update this function based on your specific logic
     // to map region labels or other values to colors
     // Example: return value === 'A' ? '#800026' : value === 'B' ? '#000' : '#FED976';
-    return '#FED976';
+    return '#000';
   }
 
   function getRandomColor() {
