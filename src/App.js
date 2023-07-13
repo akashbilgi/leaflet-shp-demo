@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import L from 'leaflet';
 import * as shapefile from 'shapefile';
+import logo from './logo.png';
 
 function App() {
   const [geoLayer, setGeoLayer] = useState(null);
@@ -162,8 +163,12 @@ function App() {
 
   return (
     <div className="App">
+      <header>
+        <img src={logo} alt="Logo" style={{ width: '200px', height: '200px', marginRight: '20px' }} />
+        <h1>Pyneapple App Demo</h1>
+      </header>
       <div style={{ display: 'flex' }}>
-        <div style={{ width: '15%' }}>
+        <div style={{ width: '15%', fontSize: '14px' }}>
           <div style={{ marginBottom: '10px' }}>
             <label htmlFor="selectedFile">Select File:</label>
             <select
