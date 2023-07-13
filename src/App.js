@@ -66,6 +66,7 @@ function App() {
         });
     }
   }, [map, selectedFile]);
+
   function fetchData() {
     axios
       .get('http://localhost:8000/api/endpoint', {
@@ -90,7 +91,7 @@ function App() {
       })
       .then((response) => {
         const labels = response.data.labels;
-  
+
         // Create a mapping from labels to colors
         const labelColorMap = {};
         labels.forEach((label) => {
@@ -98,7 +99,7 @@ function App() {
             labelColorMap[label] = getRandomColor();
           }
         });
-  
+
         setGeoLayer((currentGeoLayer) => {
           let labelIndex = 0;
           currentGeoLayer.eachLayer(function (layer) {
@@ -108,7 +109,7 @@ function App() {
             layer.bindTooltip(`${label}`);
             labelIndex += 1;
           });
-          
+
           // Update legend
           const legend = L.control({ position: 'bottomright' });
           legend.onAdd = function (map) {
@@ -152,15 +153,21 @@ function App() {
 
   return (
     <div className="App">
-      <select value={selectedFile} onChange={handleChange}>
-        {files.map((file, index) => (
-          <option value={file} key={index}>
-            {file}
-          </option>
-        ))}
-      </select>
-      <button onClick={fetchData}>Fetch Data</button>
-      <div id="mapid" style={{ height: '600px' }}></div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ width: '15%' }}>
+          <select value={selectedFile} onChange={handleChange}>
+            {files.map((file, index) => (
+              <option value={file} key={index}>
+                {file}
+              </option>
+            ))}
+          </select>
+          <button onClick={fetchData}>Fetch Data</button>
+        </div>
+        <div style={{ width: '85%' }}>
+          <div id="mapid" style={{ height: '600px' }}></div>
+        </div>
+      </div>
     </div>
   );
 }
