@@ -6,54 +6,71 @@ import * as shapefile from 'shapefile';
 function App() {
   const [geoLayer, setGeoLayer] = useState(null);
   const [map, setMap] = useState(null);
+  const [selectedFile, setSelectedFile] = useState('LACity');
+  const [files, setFiles] = useState([]);
 
   useEffect(() => {
-    // Initialize map
-    const mymap = L.map('mapid').setView([34.0522, -118.2437], 10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(mymap);
-    setMap(mymap);
-
-    // Load shapefile
-    shapefile
-      .read('http://localhost:8003/test_react/data/LACity')
-      .then(function ({ features }) {
-        const newGeoLayer = L.geoJSON(features, {
-          style: function (feature) {
-            const value = feature.properties.POP;
-            const color = getColor(value);
-            return {
-              fillColor: color,
-              color: '#000',
-              fillOpacity: 0.5,
-            };
-          },
-          onEachFeature: function (feature, layer) {
-            layer.on('click', function (e) {
-              if (geoLayer) {
-                geoLayer.setStyle({ fillOpacity: 0.5 }); // Reset opacity for all features
-                layer.setStyle({ fillOpacity: 1 }); // Highlight the clicked feature
-              }
-            });
-
-            const tooltipContent = `Tract: ${feature.properties.TRACTCE10}\nTotal Population: ${feature.properties.POP}`;
-            layer.bindTooltip(tooltipContent).openTooltip();
-          },
-        }).addTo(mymap);
-
-        setGeoLayer(newGeoLayer); // Save a reference to the GeoJSON layer
+    axios
+      .get('http://localhost:8000/listFiles')
+      .then((response) => {
+        setFiles(response.data);
       })
-      .catch(function (error) {
-        console.log('Error loading shapefile:', error);
+      .catch((error) => {
+        console.log('Error fetching files:', error);
       });
   }, []);
 
+  useEffect(() => {
+    if (!map) {
+      const mymap = L.map('mapid').setView([34.0522, -118.2437], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(mymap);
+      setMap(mymap);
+    }
+  }, [map]);
+
+  useEffect(() => {
+    if (map && selectedFile) {
+      if (geoLayer) {
+        map.removeLayer(geoLayer);
+      }
+      shapefile
+        .read(`http://localhost:8003/test_react/data/${selectedFile}`)
+        .then(({ features }) => {
+          const newGeoLayer = L.geoJSON(features, {
+            style: (feature) => {
+              return {
+                fillColor: getColor(feature.properties.POP),
+                color: '#000',
+                fillOpacity: 0.5,
+              };
+            },
+            onEachFeature: (feature, layer) => {
+              layer.on('click', function () {
+                if (geoLayer) {
+                  geoLayer.setStyle({ fillOpacity: 0.5 });
+                  layer.setStyle({ fillOpacity: 1 });
+                }
+              });
+
+              const tooltipContent = `Tract: ${feature.properties.TRACTCE10}\nTotal Population: ${feature.properties.POP}`;
+              layer.bindTooltip(tooltipContent).openTooltip();
+            },
+          }).addTo(map);
+
+          setGeoLayer(newGeoLayer);
+        })
+        .catch((error) => {
+          console.log('Error loading shapefile:', error);
+        });
+    }
+  }, [map, selectedFile]);
   function fetchData() {
     axios
       .get('http://localhost:8000/api/endpoint', {
         params: {
-          file_name: "LACity.shp",
+          file_name: `${selectedFile}.shp`,
           disname: 'households',
           minName: 'pop_16up',
           minLow: 0,
@@ -73,7 +90,7 @@ function App() {
       })
       .then((response) => {
         const labels = response.data.labels;
-
+  
         // Create a mapping from labels to colors
         const labelColorMap = {};
         labels.forEach((label) => {
@@ -81,10 +98,10 @@ function App() {
             labelColorMap[label] = getRandomColor();
           }
         });
-
-        if (geoLayer) {
+  
+        setGeoLayer((currentGeoLayer) => {
           let labelIndex = 0;
-          geoLayer.eachLayer(function (layer) {
+          currentGeoLayer.eachLayer(function (layer) {
             const label = labels[labelIndex];
             const color = labelColorMap[label];
             layer.setStyle({ fillColor: color });
@@ -92,50 +109,58 @@ function App() {
             labelIndex += 1;
           });
           
-        }
-
-        // Update legend
-        const legend = L.control({ position: 'bottomright' });
-        legend.onAdd = function (map) {
-          const div = L.DomUtil.create('div', 'info legend');
-          div.innerHTML += '<h4>Data</h4>';
-          for (let label in labelColorMap) {
-            div.innerHTML +=
-              '<i style="background:' +
-              labelColorMap[label] +
-              '"></i> ' +
-              label +
-              '<br>';
-          }
-          return div;
-        };
-        legend.addTo(map);
+          // Update legend
+          const legend = L.control({ position: 'bottomright' });
+          legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML += '<h4>Data</h4>';
+            for (let label in labelColorMap) {
+              div.innerHTML +=
+                '<i style="background:' +
+                labelColorMap[label] +
+                '"></i> ' +
+                label +
+                '<br>';
+            }
+            return div;
+          };
+          legend.addTo(map);
+          return currentGeoLayer;
+        });
       })
       .catch((error) => {
         console.log('Error fetching data:', error);
       });
   }
 
-  function getColor(value) {
-    // Update this function based on your specific logic
-    // to map region labels or other values to colors
-    // Example: return value === 'A' ? '#800026' : value === 'B' ? '#000' : '#FED976';
-    return '#000';
-  }
+  const handleChange = (event) => {
+    setSelectedFile(event.target.value);
+  };
 
-  function getRandomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
+  const getColor = (value) => {
+    return '#000';
+  };
+
+  const getRandomColor = () => {
+    let color = '#';
+    const letters = '0123456789ABCDEF';
+    for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
-  }
+  };
 
   return (
-    <div className='App'>
+    <div className="App">
+      <select value={selectedFile} onChange={handleChange}>
+        {files.map((file, index) => (
+          <option value={file} key={index}>
+            {file}
+          </option>
+        ))}
+      </select>
       <button onClick={fetchData}>Fetch Data</button>
-      <div id='mapid' style={{ height: '600px' }}></div>
+      <div id="mapid" style={{ height: '600px' }}></div>
     </div>
   );
 }
