@@ -15,17 +15,17 @@ function App() {
     minName: 'pop_16up',
     minLow: 0,
     minHigh: 3000,
-    maxName: '',
+    maxName: 'pop_16up',
     maxLow: 0,
     maxHigh: 99999,
     avgName: 'employed',
     avgLow: 1000,
     avgHigh: 4000,
     sumName: 'pop2010',
-    sumLow: 20000,
-    sumHigh: 99999,
-    countLow: -99999,
-    countHigh: 99999,
+    sumLow: 200000,
+    sumHigh: 999999,
+    countLow: -999999,
+    countHigh: 999999,
   });
 
   useEffect(() => {
